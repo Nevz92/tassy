@@ -66,6 +66,7 @@ function DayCard({
 }) {
   const fileRef = useRef<HTMLInputElement>(null)
   const [estimandoLinha, setEstimandoLinha] = useState<string | null>(null)
+  const [aiMsg, setAiMsg] = useState<string | null>(null)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const macros = useMemo(() => parseDay(entry.alimentosTexto), [entry.alimentosTexto, foodsVersion])
   const naoReconhecidas = macros.lines.filter((l) => !l.ok)
@@ -75,7 +76,12 @@ function DayCard({
     setEstimandoLinha(raw)
     try {
       const s = await estimar(raw)
-      if (!s) alert(`Não reconheci "${raw}" como um alimento 🤔`)
+      if (s) {
+        const porcao = s.un ? ` · porção de ${s.un}g ≈ ${Math.round((s.kcal * s.un) / 100)} kcal` : ''
+        setAiMsg(`✨ ${s.nome}: ${Math.round(s.kcal)} kcal/100g${porcao}`)
+      } else {
+        alert(`Não reconheci "${raw}" como um alimento 🤔`)
+      }
     } catch {
       alert('Não consegui estimar — confira a chave de IA (botão ✨ IA no rodapé) e a internet.')
     }
@@ -101,6 +107,7 @@ function DayCard({
         rows={Math.max(3, entry.alimentosTexto.split('\n').length + 1)}
         onChange={(e) => onText(e.target.value)}
       />
+      {aiMsg && <p className="ai-info">{aiMsg}</p>}
       {temAlgo && (
         <div className="food-macros">
           <span>P <b>{fmt(macros.p)}g</b></span>

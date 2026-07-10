@@ -14,6 +14,7 @@ export default function FoodAdder({ onAdd, estimar }: Props) {
   const [sugs, setSugs] = useState<Suggestion[]>([])
   const [buscandoMarcas, setBuscandoMarcas] = useState(false)
   const [estimando, setEstimando] = useState(false)
+  const [aiInfo, setAiInfo] = useState<string | null>(null)
   const [open, setOpen] = useState(false)
   const gramsRef = useRef<HTMLInputElement>(null)
   const rootRef = useRef<HTMLDivElement>(null)
@@ -58,8 +59,13 @@ export default function FoodAdder({ onAdd, estimar }: Props) {
     setEstimando(true)
     try {
       const s = await estimar(q.trim())
-      if (s) escolher(s)
-      else alert('Não reconheci isso como um alimento 🤔 — tente descrever de outro jeito.')
+      if (s) {
+        escolher(s)
+        const porcao = s.un ? ` · porção de ${s.un}g ≈ ${Math.round((s.kcal * s.un) / 100)} kcal` : ''
+        setAiInfo(`✨ ${s.nome}: ${Math.round(s.kcal)} kcal/100g${porcao}`)
+      } else {
+        alert('Não reconheci isso como um alimento 🤔 — tente descrever de outro jeito.')
+      }
     } catch (e) {
       if (e instanceof Error && e.message.includes('não configurada')) {
         alert('Configure a chave de IA no botão ✨ IA, no rodapé do app.')
@@ -92,6 +98,7 @@ export default function FoodAdder({ onAdd, estimar }: Props) {
     setSel(null)
     setGrams('')
     setSugs([])
+    setAiInfo(null)
   }
 
   return (
@@ -104,6 +111,7 @@ export default function FoodAdder({ onAdd, estimar }: Props) {
           onChange={(e) => {
             setQ(e.target.value)
             setSel(null)
+            setAiInfo(null)
           }}
           onFocus={() => sugs.length && setOpen(true)}
           onKeyDown={(e) => {
@@ -133,6 +141,7 @@ export default function FoodAdder({ onAdd, estimar }: Props) {
           +
         </button>
       </div>
+      {aiInfo && <p className="ai-info">{aiInfo}</p>}
       {open && (sugs.length > 0 || buscandoMarcas) && (
         <ul className="sug-list">
           {sugs.map((s, i) => (

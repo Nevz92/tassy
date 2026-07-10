@@ -16,7 +16,14 @@ interface Stats {
   cardioTotal: number
   muscDias: number
   kcalMedia: number | null
-  diasConsiderados: number
+}
+
+/** "60 min (1h)" · "210 min (3h30)" · "45 min" */
+export function fmtMin(min: number): string {
+  if (min < 60) return `${min} min`
+  const h = Math.floor(min / 60)
+  const m = min % 60
+  return `${min} min (${h}h${m ? String(m).padStart(2, '0') : ''})`
 }
 
 function statsOf(dates: string[], days: Record<string, DayEntry>): Stats {
@@ -38,13 +45,7 @@ function statsOf(dates: string[], days: Record<string, DayEntry>): Stats {
       kcalDias++
     }
   }
-  return {
-    aguaDias,
-    cardioTotal,
-    muscDias,
-    kcalMedia: kcalDias ? kcalSum / kcalDias : null,
-    diasConsiderados: past.length,
-  }
+  return { aguaDias, cardioTotal, muscDias, kcalMedia: kcalDias ? kcalSum / kcalDias : null }
 }
 
 function streakAtivo(days: Record<string, DayEntry>): number {
@@ -62,26 +63,20 @@ function streakAtivo(days: Record<string, DayEntry>): number {
   return n
 }
 
-function StatCard({ titulo, stats, extra }: { titulo: string; stats: Stats; extra?: { label: string; value: string }[] }) {
+interface Row {
+  label: string
+  value: string
+  ok?: boolean
+}
+
+function StatCard({ titulo, rows }: { titulo: string; rows: Row[] }) {
   return (
     <div className="stat-card">
       <h3>{titulo}</h3>
       <ul>
-        <li>
-          💧 Meta de água <b>{stats.aguaDias}/{stats.diasConsiderados} dias</b>
-        </li>
-        <li>
-          🏃‍♀️ Cardio <b>{stats.cardioTotal} min</b>
-        </li>
-        <li>
-          💪 Musculação <b>{stats.muscDias} dias</b>
-        </li>
-        <li>
-          🍽️ Média <b>{stats.kcalMedia === null ? '—' : `${Math.round(stats.kcalMedia)} kcal`}</b>
-        </li>
-        {extra?.map((e) => (
-          <li key={e.label}>
-            {e.label} <b>{e.value}</b>
+        {rows.map((r) => (
+          <li key={r.label}>
+            {r.label} <b className={r.ok ? 'ok-text' : ''}>{r.value}</b>
           </li>
         ))}
       </ul>
@@ -111,13 +106,34 @@ export default function SummaryCards({ year, month, days, weights }: Props) {
     }
   }, [year, month, days, weights])
 
+  const kcalStr = (s: Stats) => (s.kcalMedia === null ? '—' : `${Math.round(s.kcalMedia)} kcal`)
   const pesoStr =
     pesoVar === null ? '—' : `${pesoVar > 0 ? '+' : ''}${pesoVar.toFixed(1).replace('.', ',')} kg`
 
+  const semanaRows: Row[] = [
+    { label: '💧 Água', value: `${semana.aguaDias}/7 dias`, ok: semana.aguaDias >= 7 },
+    {
+      label: '🏃‍♀️ Cardio (meta 210 min)',
+      value: fmtMin(semana.cardioTotal),
+      ok: semana.cardioTotal >= 210,
+    },
+    { label: '💪 Musculação', value: `${semana.muscDias}/5 dias`, ok: semana.muscDias >= 5 },
+    { label: '🍽️ Média', value: kcalStr(semana) },
+    { label: '🔥 Sequência', value: `${streak} dia${streak === 1 ? '' : 's'}` },
+  ]
+
+  const mesRows: Row[] = [
+    { label: '💧 Água', value: `${mes.aguaDias}/30 dias`, ok: mes.aguaDias >= 30 },
+    { label: '🏃‍♀️ Cardio', value: fmtMin(mes.cardioTotal) },
+    { label: '💪 Musculação', value: `${mes.muscDias} dias` },
+    { label: '🍽️ Média', value: kcalStr(mes) },
+    { label: '⚖️ Peso no mês', value: pesoStr },
+  ]
+
   return (
     <section className="summary-row">
-      <StatCard titulo="✨ Semana atual" stats={semana} extra={[{ label: '🔥 Sequência', value: `${streak} dia${streak === 1 ? '' : 's'}` }]} />
-      <StatCard titulo="🗓️ Mês" stats={mes} extra={[{ label: '⚖️ Peso no mês', value: pesoStr }]} />
+      <StatCard titulo="✨ Semana atual" rows={semanaRows} />
+      <StatCard titulo="🗓️ Mês" rows={mesRows} />
     </section>
   )
 }

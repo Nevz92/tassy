@@ -10,10 +10,11 @@ export interface TrackerProps {
   updateDay: (date: string, patch: Partial<DayEntry>) => void
 }
 
+// as chaves antigas (b700/b900) são mantidas para preservar marcações já feitas
 const GARRAFAS: { key: keyof Agua; ml: number; label: string }[] = [
-  { key: 'b500', ml: 500, label: '🍼 500 ml' },
-  { key: 'b700', ml: 700, label: '🧴 700 ml' },
-  { key: 'b900', ml: 900, label: '🍶 900 ml' },
+  { key: 'b500', ml: 500, label: '🍼 500 ml ①' },
+  { key: 'b700', ml: 500, label: '🍼 500 ml ②' },
+  { key: 'b900', ml: 1000, label: '🍶 1 L' },
 ]
 
 export function aguaMl(a: Agua): number {
@@ -37,7 +38,7 @@ export function WaterTable({ year, month, getDay, updateDay }: TrackerProps) {
   return (
     <MonthTable
       title="💧 Água"
-      subtitle="Marque as garrafas que você bebeu no dia — meta: as 3 (2,1 L)"
+      subtitle="Marque as garrafas que você bebeu no dia — meta: as 3 (2 L)"
       year={year}
       month={month}
       rows={GARRAFAS.map((g) => ({

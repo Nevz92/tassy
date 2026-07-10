@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
 import { DIAS_SEMANA_LETRA, dateStr, daysInMonth, todayStr, weekdayOf } from '../dates'
 
 export interface RowSpec {
@@ -25,6 +25,17 @@ export default function MonthTable({ title, subtitle, year, month, rows, total }
   const n = daysInMonth(year, month)
   const hoje = todayStr()
   const dias = Array.from({ length: n }, (_, i) => i + 1)
+  const scrollRef = useRef<HTMLDivElement>(null)
+
+  // ao abrir/trocar de mês, posiciona o scroll com o dia de hoje como primeira coluna visível
+  useEffect(() => {
+    const el = scrollRef.current
+    if (!el) return
+    const todayTh = el.querySelector<HTMLElement>('thead th.today')
+    const labelTh = el.querySelector<HTMLElement>('thead th.rowlabel')
+    if (todayTh) el.scrollLeft = Math.max(0, todayTh.offsetLeft - (labelTh?.offsetWidth ?? 0))
+    else el.scrollLeft = 0
+  }, [year, month])
 
   const cls = (ds: string, extra = '') => `${ds === hoje ? 'today ' : ''}${extra}`.trim()
 
@@ -32,7 +43,7 @@ export default function MonthTable({ title, subtitle, year, month, rows, total }
     <section className="card">
       <h2>{title}</h2>
       {subtitle && <p className="card-sub">{subtitle}</p>}
-      <div className="table-scroll">
+      <div className="table-scroll" ref={scrollRef}>
         <table className="month-table">
           <thead>
             <tr>

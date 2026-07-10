@@ -22,6 +22,7 @@ import SummaryCards from './components/SummaryCards'
 import { CardioTable, MarksTable, StrengthTable, WaterTable } from './components/Trackers'
 import WeightSection from './components/WeightSection'
 import MacroSummary from './components/MacroSummary'
+import KcalHistory from './components/KcalHistory'
 import FoodScreen from './components/FoodScreen'
 import Onboarding from './components/Onboarding'
 
@@ -189,6 +190,7 @@ export default function App() {
             metaKcal={profile.metaKcal}
             foodsVersion={foodsVersion}
           />
+          <KcalHistory year={y} month={m} days={days} metaKcal={profile.metaKcal} foodsVersion={foodsVersion} />
           <WaterTable {...trackerProps} />
           <CardioTable {...trackerProps} />
           <StrengthTable {...trackerProps} />

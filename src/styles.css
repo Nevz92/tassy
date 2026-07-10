@@ -672,6 +672,16 @@ textarea {
   margin-top: 6px;
 }
 
+.ai-info {
+  margin-top: 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--lilac);
+  background: var(--lilac-soft);
+  border-radius: 10px;
+  padding: 8px 10px;
+}
+
 .modal-overlay {
   position: fixed;
   inset: 0;
